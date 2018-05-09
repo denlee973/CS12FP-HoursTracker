@@ -1,4 +1,6 @@
 from Tkinter import *
+import ttk
+import ScrolledText
 from abc import ABCMeta, abstractmethod
 
 
@@ -14,11 +16,11 @@ class Master:
         window.config(menu = self.menubar)
 
         
-    # def settings(self):
-    #     pass
+    def settings(self):
+        pass
     
     def readFile(self,filename):
-        f = open('data.txt','r')
+        f = open(filename,'r')
         self.text = f.readlines()
         f.close
         for i in range(len(self.text)-1):
@@ -27,15 +29,40 @@ class Master:
             self.text[j] = self.text[j].split("/t")
         print self.text
         return self.text
+    
+    def combobox(self,listv):
+        self.varname = ttk.Combobox(window)
+        self.varname['values'] = listv
+        self.varname.current(0)
+        return self.varname
+    
+    def retrieve(self,submitData,numElement,listn):
+        for i in range(numElement-1):
+            self.item = self.listn[i].get()
+            self.data.append(self.item)
+        if submitData == "newentry":
+            pass
+        print self.data
+        return self.data
             
-    # def reWriteFile(filename):
-    #     f = open('data.txt', 'r+w')
-    #     
+    def reWriteFile(filename,adding):
+        self.text = self.readFile(filename)
+        f = open(filename,'w')
+        for i in range(len(self.text)):
+            line = ""
+            for j in range(len(self.text[i])):
+                line += str(self.text[i][j])
+            print line
+            f.write(line)
+        f.close()
+            
+        
 class LogIn(Master):
     username = ""
     __password = ""
     
     def __init__(self,window):
+        Master.__init__(self)
         self.window = window
         window.geometry("200x100")
         window.title("Hours Tracker - Log In")
@@ -75,6 +102,7 @@ class Home(Master):
     search = ""
     
     def __init__(self,window):
+        Master.__init__(self)
         self.window = window
         window.title("Hours Tracker - Home")
         window.geometry("1000x1000")
@@ -97,19 +125,67 @@ class Home(Master):
         self.listbox.grid(row=2, column=1)
         
         for i in range(len(self.listEvents)):
-            self.listbox.insert(i,self.listEvents[i][0])
+            self.listbox.insert(i, self.listEvents[i][0])
             
 class NewEntry(Master):
-    attributes = ["Subject","With","Date","Time Start","Time End","Other Info"]
+    attributes = ["Subject:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
+    months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+    days = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
+    years = [2017,2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
+    data = []
     
-    def __init__(self):
+    def __init__(self,window):
+        Master.__init__(self)
         self.window = window
         window.title = "Hours Tracker - New Entry"
         
+        # creating labels for the inputs
+        for i in range(len(self.attributes)):
+            self.newLbls = Label(window, text=self.attributes[i])
+            self.newLbls.grid(row=i, column=1)
+        self.endTime = Label(window, text="End:")
+        self.endTime.grid(row=3, column=3)
+            
+        # generating and grid-ing the input stuff
+        self.subject = Entry(window, width=70)
+        self.names = Entry(window, width=70)
+        self.subject.grid(row=0, column=2, columnspan=3)
+        self.names.grid(row=1, column=2, columnspan=3)
         
+        self.month = self.combobox(self.months)
+        self.day = self.combobox(self.days)
+        self.year = self.combobox(self.years)
+        self.month.grid(row=2, column=2)
+        self.day.grid(row=2, column=3)
+        self.year.grid(row=2, column=4)
+        
+        self.tstart = Entry(window)
+        self.tend = Entry(window)
+        self.tstart.grid(row=3, column=2)
+        self.tend.grid(row=3, column=4)
+        
+        self.length = Entry(window, width=70)
+        self.length.grid(row=4, column=2, columnspan=3)
+        
+        self.info = ScrolledText.ScrolledText(window, wrap=WORD)
+        self.info.grid(row=5, column=2, columnspan=3)
+        
+        self.listn = [self.subject,self.names,self.month,self.day,self.year,self.tstart,self.tend,self.length,self.info]
+
+        self.submit = Button(window, text="Submit", command= lambda submitData="newentry", numElement=9, listn=self.listn: self.retrieve(submitData, numElement, listn))
+        self.submit.grid(row=6, column=1, columnspan=4)
+        
+        
+
+        
+    
+        
+            
+class CalculateHours(Master):
+    pass
         
         
 window = Tk()
-login = LogIn(window)
+newentry = NewEntry(window)
 window.mainloop()
     
