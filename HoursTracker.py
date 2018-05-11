@@ -1,6 +1,5 @@
 from Tkinter import *
 import ttk
-import ScrolledText
 from abc import ABCMeta, abstractmethod
 
 
@@ -39,19 +38,17 @@ class Master:
     def retrieve(self,submitData,numElement,listn):
         for i in range(numElement-1):
             self.item = self.listn[i].get()
-            self.data.append(self.item)
+            self.data[0].append(self.item)
         if submitData == "newentry":
-            pass
-        print self.data
-        return self.data
+            self.addToFile('data.txt',self.data)
+        self.data = [[]]
             
-    def reWriteFile(filename,adding):
-        self.text = self.readFile(filename)
-        f = open(filename,'w')
-        for i in range(len(self.text)):
-            line = ""
-            for j in range(len(self.text[i])):
-                line += str(self.text[i][j])
+    def addToFile(self,filename,adding):
+        f = open(filename,'a')
+        for i in range(len(adding)):
+            line = "\n"
+            for j in range(len(adding[i])):
+                line += str(adding[i][j])+"/t"
             print line
             f.write(line)
         f.close()
@@ -113,7 +110,6 @@ class Home(Master):
         self.searchIcon = PhotoImage(file="searchIcon.gif")
         self.searchEnter = Button(window, image=self.searchIcon)
         self.searchEnter.grid(row=1, column=5)
-        print "hi"
         
         # list of inputted events
         self.listEvents = self.readFile('data.txt')[2:]
@@ -132,7 +128,7 @@ class NewEntry(Master):
     months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     days = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
     years = [2017,2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
-    data = []
+    data = [[]]
     
     def __init__(self,window):
         Master.__init__(self)
@@ -167,7 +163,7 @@ class NewEntry(Master):
         self.length = Entry(window, width=70)
         self.length.grid(row=4, column=2, columnspan=3)
         
-        self.info = ScrolledText.ScrolledText(window, wrap=WORD)
+        self.info = Entry(window, width=70)
         self.info.grid(row=5, column=2, columnspan=3)
         
         self.listn = [self.subject,self.names,self.month,self.day,self.year,self.tstart,self.tend,self.length,self.info]
@@ -176,11 +172,6 @@ class NewEntry(Master):
         self.submit.grid(row=6, column=1, columnspan=4)
         
         
-
-        
-    
-        
-            
 class CalculateHours(Master):
     pass
         
