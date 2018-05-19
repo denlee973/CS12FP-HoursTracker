@@ -29,26 +29,53 @@ class Master:
         print self.text
         return self.text
     
-    def combobox(self,listv):
-        self.varname = ttk.Combobox(window)
+    def combobox(self,listv,style):
+        self.varname = ttk.Combobox(window, state=style)
         self.varname['values'] = listv
         self.varname.current(0)
         return self.varname
     
-    def retrieve(self,submitData,numElement,listn):
-        for i in range(numElement-1):
+    def retrieve(self,submitData,numElement,listn,other):
+        for i in range(numElement):
             self.item = self.listn[i].get()
             self.data[0].append(self.item)
         if submitData == "newentry":
+            # date formatting to mm-dd-yyyy
+            imon = self.data[0][2]
+            date = ""
+            for i in range(len(other)):
+                if imon == other[i]:
+                    if i <= 9:
+                        date += "0"+str(i+1)+"-"
+                    else:
+                        date += str(i+1)+"-"
+            if len(self.data[0][3]) < 2:
+                date += "0"+self.data[0][3]+"-"+self.data[0][4]
+            else:
+                date += self.data[0][3]+"-"+self.data[0][4]
+                
+            for j in range(3):
+                self.data[0].pop(2)
+             
+            self.data[0].insert(2,date)
+            print self.data
+            
+            # calculating length
+            if self.data[0][7] == "":
+                pass
+            elif self.data[0][6] == "":
+                pass
             self.addToFile('data.txt',self.data)
+            
         self.data = [[]]
             
     def addToFile(self,filename,adding):
         f = open(filename,'a')
         for i in range(len(adding)):
             line = "\n"
-            for j in range(len(adding[i])):
+            for j in range(len(adding[i])-1):
                 line += str(adding[i][j])+"/t"
+            line += str(adding[i][len(adding[i])-1])
             print line
             f.write(line)
         f.close()
@@ -102,26 +129,47 @@ class Home(Master):
         Master.__init__(self)
         self.window = window
         window.title("Hours Tracker - Home")
-        window.geometry("1000x1000")
+        window.geometry("800x1000")
         
         # search items
-        self.search = Entry(window)
+        self.search = Entry(window, width=70)
+        # self.search.pack()
         self.search.grid(row=1, column=1, columnspan=4)
-        self.searchIcon = PhotoImage(file="searchIcon.gif")
-        self.searchEnter = Button(window, image=self.searchIcon)
-        self.searchEnter.grid(row=1, column=5)
+        self.searchButton = Button(window, text="Search")
+        # self.searchButton.pack()
+        self.searchButton.grid(row=1, column=5)
         
         # list of inputted events
         self.listEvents = self.readFile('data.txt')[2:]
         print "hi",self.listEvents
         # self.listEvents.sort()
         
-        # can you make listbox with different columns?
-        self.listbox = Listbox(window)
-        self.listbox.grid(row=2, column=1)
+        # self.myframe = Frame(self.window)
+        # self.myframe.pack(side=RIGHT)
+        # self.scrollbar = Scrollbar(self.myframe) 
+        # self.scrollbar.pack(side=RIGHT, fill=Y)
+        # self.listbox = Listbox(self.myframe, yscrollcommand=self.scrollbar.set) 
+        # self.listbox.pack()
+        # self.scrollbar.config(command=self.listbox.yview)
+        # 
+        # for k in range(100):
+        #     self.listbox.insert(END,str(k))
+        # self.myframe.pack()
         
-        for i in range(len(self.listEvents)):
-            self.listbox.insert(i, self.listEvents[i][0])
+        self.scrollbar = Scrollbar(window)
+        self.scrollbar.grid(column=6, columnspan=4, sticky=N+S)
+        
+        for i in range(5):
+            self.listbox = Listbox(window, yscrollcommand=self.scrollbar.set)
+        
+            for k in range(len(self.listEvents)):
+                self.listbox.insert(i, self.listEvents[k][i])
+            
+            self.listbox.grid(row=2, column=i+1)
+        
+                
+        self.scrollbar.config(command=self.listbox.yview)
+
             
 class NewEntry(Master):
     attributes = ["Subject:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
@@ -134,29 +182,38 @@ class NewEntry(Master):
         Master.__init__(self)
         self.window = window
         window.title = "Hours Tracker - New Entry"
-        
+        self.nodatey = IntVar()
+
         # creating labels for the inputs
         for i in range(len(self.attributes)):
             self.newLbls = Label(window, text=self.attributes[i])
             self.newLbls.grid(row=i, column=1)
-        self.endTime = Label(window, text="End:")
+        self.endTime = Label(window, text="Time End:")
         self.endTime.grid(row=3, column=3)
             
         # generating and grid-ing the input stuff
         self.subject = Entry(window, width=70)
         self.names = Entry(window, width=70)
+        # want to make placeholder grey but I'll do that later.
+        # self.names.insert(0, 'Please enter names of people associated with this event separated by commas.')
+        # self.names.bind("<FocusIn>", lambda args: self.names.delete('0', 'end'))
         self.subject.grid(row=0, column=2, columnspan=3)
         self.names.grid(row=1, column=2, columnspan=3)
         
-        self.month = self.combobox(self.months)
-        self.day = self.combobox(self.days)
-        self.year = self.combobox(self.years)
+        self.month = self.combobox(self.months, "readonly")
+        self.month.config(width=10)
+        self.day = self.combobox(self.days, "normal")
+        self.day.config(width=7)
+        self.year = self.combobox(self.years, "normal")
+        self.year.config(width=7)
         self.month.grid(row=2, column=2)
         self.day.grid(row=2, column=3)
         self.year.grid(row=2, column=4)
+        self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda widgets=[self.month,self.day,self.year], var=self.nodatey: self.disableWidget(widgets))
+        self.nodate.grid(row=2, column=5)
         
-        self.tstart = Entry(window)
-        self.tend = Entry(window)
+        self.tstart = Entry(window, width=28)
+        self.tend = Entry(window, width=28)
         self.tstart.grid(row=3, column=2)
         self.tend.grid(row=3, column=4)
         
@@ -168,8 +225,16 @@ class NewEntry(Master):
         
         self.listn = [self.subject,self.names,self.month,self.day,self.year,self.tstart,self.tend,self.length,self.info]
 
-        self.submit = Button(window, text="Submit", command= lambda submitData="newentry", numElement=9, listn=self.listn: self.retrieve(submitData, numElement, listn))
+        self.submit = Button(window, text="Submit", command= lambda submitData="newentry", numElement=9, listn=self.listn, other=self.months: self.retrieve(submitData, numElement, listn, other))
         self.submit.grid(row=6, column=1, columnspan=4)
+        
+    def disableWidget(self,widgets):
+        if self.nodatey.get() == 1:
+            for i in range(len(widgets)):
+                widgets[i].config(state="disabled")
+        else:
+            for i in range(len(widgets)):
+                widgets[i].config(state="normal")
         
         
 class CalculateHours(Master):
@@ -177,6 +242,6 @@ class CalculateHours(Master):
         
         
 window = Tk()
-newentry = NewEntry(window)
+home = NewEntry(window)
 window.mainloop()
     
