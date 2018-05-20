@@ -61,10 +61,40 @@ class Master:
             print self.data
             
             # calculating length
-            if self.data[0][7] == "":
-                pass
-            elif self.data[0][6] == "":
-                pass
+            if self.data[0][5] == "":
+                if self.data[0][3].find("m") >= 0 or self.data[0][3].find("M"):
+                    if self.data[0][3][-2:] == self.data[0][4][-2:]:
+                        start = self.data[0][3][:-2].split(":")
+                        end = self.data[0][4][:-2].split(":")
+                        print start, end
+                        hrs = int(end[0])-int(start[0])
+                        mins = int(end[1])-int(start[1])
+                    elif (self.data[0][3].find("a") >= 0 or self.data[0][3].find("A") >= 0) and (self.data[0][4].find("p") >= 0 or self.data[0][4].find("P")):
+                        start = self.data[0][3][:-2].split(":")
+                        end = self.data[0][4][:-2].split(":")
+                        print start, end
+                        hrs = int(end[0])-int(start[0])+12
+                        mins = int(end[1])-int(start[1])
+                else:
+                    start = self.data[0][3].split(":")
+                    end = self.data[0][4].split(":")
+                    print start, end
+                    hrs = int(end[0])-int(start[0])
+                    mins = int(end[1])-int(start[1])
+                for r in range(3):
+                    self.data[0].pop(3)
+                if len(str(hrs)) < 2:
+                    hrs = "0"+str(hrs)
+                else:
+                    hrs = str(hrs)
+                if len(str(mins)) < 2:
+                    mins = "0"+str(mins)
+                else:
+                    mins = str(mins)
+                self.data[0].insert(3,hrs+":"+mins)
+            elif self.data[0][3] == "":
+                for r in range(2):
+                    self.data[0].pop(3)
             self.addToFile('data.txt',self.data)
             
         self.data = [[]]
@@ -209,13 +239,17 @@ class NewEntry(Master):
         self.month.grid(row=2, column=2)
         self.day.grid(row=2, column=3)
         self.year.grid(row=2, column=4)
-        self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda widgets=[self.month,self.day,self.year], var=self.nodatey: self.disableWidget(widgets))
+        self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda widgets=[self.month,self.day,self.year]: self.disableWidget(widgets))
         self.nodate.grid(row=2, column=5)
+        
+        # add keybind to which type of length using (ie. which one has text and which doesn't)
         
         self.tstart = Entry(window, width=28)
         self.tend = Entry(window, width=28)
         self.tstart.grid(row=3, column=2)
         self.tend.grid(row=3, column=4)
+        # self.twentyfour = Checkbutton(self.window, text="24-Hour", variable=self.twnty4)
+
         
         self.length = Entry(window, width=70)
         self.length.grid(row=4, column=2, columnspan=3)
