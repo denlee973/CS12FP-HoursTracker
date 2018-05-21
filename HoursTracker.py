@@ -1,4 +1,5 @@
 from Tkinter import *
+import tkFont
 import ttk
 from abc import ABCMeta, abstractmethod
 
@@ -7,9 +8,12 @@ class Master:
     __metaclass__ = ABCMeta
     text = []
     def __init__(self):
+        default_font = tkFont.nametofont("TkDefaultFont")
+        default_font.configure(size=12)
         self.menubar = Menu(window)
         self.filemenu = Menu(self.menubar, tearoff=0)
-        self.filemenu.add_cascade(label="Settings", command=self.settings)
+        
+        self.filemenu.add_cascade(label="Settings", command=self.settings) # under tools
         self.filemenu.add_cascade(label="Order")
         self.menubar.add_cascade(label="File", menu=self.filemenu)
         window.config(menu = self.menubar)
@@ -155,18 +159,21 @@ class Home(Master):
     order = "TitleA"
     search = ""
     
+    def OnVsb(self, *args):
+        vlists = [self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]
+        for i in range(len(vlists)):
+            vlists[i].yview(*args)
+
     def __init__(self,window):
         Master.__init__(self)
         self.window = window
         window.title("Hours Tracker - Home")
-        window.geometry("800x1000")
+        window.geometry("1090x850")
         
         # search items
         self.search = Entry(window, width=70)
-        # self.search.pack()
         self.search.grid(row=1, column=1, columnspan=4)
         self.searchButton = Button(window, text="Search")
-        # self.searchButton.pack()
         self.searchButton.grid(row=1, column=5)
         
         # list of inputted events
@@ -174,31 +181,56 @@ class Home(Master):
         print "hi",self.listEvents
         # self.listEvents.sort()
         
-        # self.myframe = Frame(self.window)
-        # self.myframe.pack(side=RIGHT)
-        # self.scrollbar = Scrollbar(self.myframe) 
-        # self.scrollbar.pack(side=RIGHT, fill=Y)
-        # self.listbox = Listbox(self.myframe, yscrollcommand=self.scrollbar.set) 
-        # self.listbox.pack()
-        # self.scrollbar.config(command=self.listbox.yview)
-        # 
-        # for k in range(100):
-        #     self.listbox.insert(END,str(k))
-        # self.myframe.pack()
+        # create vertical and 3 horizontal scrollbars
+        self.vscrollbar = Scrollbar(window)
+        self.vscrollbar.grid(column=7, rowspan=4, sticky=N+S)
+        self.hscrollbar1 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar1.grid(row=4, column=1, sticky=E+W)
+        self.hscrollbar2 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar2.grid(row=4, column=3, sticky=E+W)
+        self.hscrollbar3 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar3.grid(row=4, column=6, sticky=E+W)
         
-        self.scrollbar = Scrollbar(window)
-        self.scrollbar.grid(column=6, columnspan=4, sticky=N+S)
+        # creating listboxes individually (bc unfortunately you can't do the one scrollbar for all listboxes with a loop)
+        self.subjectLbl = Label(window, text="Subject")
+        self.subjectList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar1.set, width=30, height=30)
+        for k in range(len(self.listEvents)):
+            self.subjectList.insert(END, self.listEvents[k][0])
+        self.subjectList.grid(row=3, column=1)
         
-        for i in range(5):
-            self.listbox = Listbox(window, yscrollcommand=self.scrollbar.set)
+        self.categoryList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=20, height=30)
+        for k in range(len(self.listEvents)):
+            self.categoryList.insert(END, self.listEvents[k][1])
+        self.categoryList.grid(row=3, column=2)
         
-            for k in range(len(self.listEvents)):
-                self.listbox.insert(i, self.listEvents[k][i])
-            
-            self.listbox.grid(row=2, column=i+1)
+        self.nameList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar2.set, width=15, height=30)
+        for k in range(len(self.listEvents)):
+            self.nameList.insert(END, self.listEvents[k][2])
+        self.nameList.grid(row=3, column=3)
         
-                
-        self.scrollbar.config(command=self.listbox.yview)
+        self.dateList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=12, height=30)
+        for k in range(len(self.listEvents)):
+            self.dateList.insert(END, self.listEvents[k][3])
+        self.dateList.grid(row=3, column=4)
+        
+        self.lengthList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=7, height=30)
+        for k in range(len(self.listEvents)):
+            self.lengthList.insert(END, self.listEvents[k][4])
+        self.lengthList.grid(row=3, column=5)
+        
+        self.infoList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar3.set, width=20, height=30)
+        for k in range(len(self.listEvents)):
+            self.infoList.insert(END, self.listEvents[k][5])
+        self.infoList.grid(row=3, column=6)
+        
+        # configuring scrollbars to respective listboxes
+        self.vscrollbar.config(command=self.OnVsb)
+        self.hscrollbar1.config(command=self.subjectList.xview)
+        self.hscrollbar2.config(command=self.nameList.xview)
+        self.hscrollbar3.config(command=self.infoList.xview)
+        
+        
+        
 
             
 class NewEntry(Master):
@@ -276,6 +308,6 @@ class CalculateHours(Master):
         
         
 window = Tk()
-home = NewEntry(window)
+home = Home(window)
 window.mainloop()
     
