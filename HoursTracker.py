@@ -10,14 +10,42 @@ class Master:
     def __init__(self):
         default_font = tkFont.nametofont("TkDefaultFont")
         default_font.configure(size=12)
-        self.menubar = Menu(window)
-        self.filemenu = Menu(self.menubar, tearoff=0)
+        # # first tier menus
+        # self.menubar = Menu(window)
+        # self.filemenu = Menu(self.menubar, tearoff=False)
+        # self.viewmenu = Menu(self.menubar, tearoff=False)
+        # self.helpmenu = Menu(self.menubar, tearoff=0)
+        # 
+        # 
+        # # second tier menus
+        # self.settingmenu = Menu(self.filemenu, tearoff=0)
+        # 
+        # self.menubar.add_cascade(label="File", menu=self.filemenu)
+        # self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+        # self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        # self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+        # self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        # 
+        # window.config(menu = self.menubar)
         
-        self.filemenu.add_cascade(label="Settings", command=self.settings) # under tools
-        self.filemenu.add_cascade(label="Order")
-        self.menubar.add_cascade(label="File", menu=self.filemenu)
-        window.config(menu = self.menubar)
+    # def __init__(self, root):
+    #     tk.Frame.__init__(self, root)
+    #     menubar = tk.Menu(self)
+    #     fileMenu = tk.Menu(self)
+    #     recentMenu = tk.Menu(self)
+    # 
+    #     menubar.add_cascade(label="File", menu=fileMenu)
+    #     fileMenu.add_cascade(label="Open Recent", menu=recentMenu)
+    #     for name in ("file1.txt", "file2.txt", "file3.txt"):
+    #         recentMenu.add_command(label=name)
+    # 
+    # 
+    #     root.configure(menu=menubar)
+    #     root.geometry("200x200")
 
+    def newPage(self,windname,*args):
+        self.window.withdraw()
+        self.window = windname(Toplevel(self.window),*args)
         
     def settings(self):
         pass
@@ -40,12 +68,16 @@ class Master:
         return self.varname
     
     def retrieve(self,submitData,numElement,listn,other):
+        data = [[]]
         for i in range(numElement):
-            self.item = self.listn[i].get()
-            self.data[0].append(self.item)
+            item = listn[i].get()
+            data[0].append(item)
+        if submitData == "search":
+            self.newPage(Search,item)
+        
         if submitData == "newentry":
             # date formatting to mm-dd-yyyy
-            imon = self.data[0][2]
+            imon = data[0][2]
             date = ""
             for i in range(len(other)):
                 if imon == other[i]:
@@ -53,40 +85,40 @@ class Master:
                         date += "0"+str(i+1)+"-"
                     else:
                         date += str(i+1)+"-"
-            if len(self.data[0][3]) < 2:
-                date += "0"+self.data[0][3]+"-"+self.data[0][4]
+            if len(data[0][3]) < 2:
+                date += "0"+self.data[0][3]+"-"+data[0][4]
             else:
-                date += self.data[0][3]+"-"+self.data[0][4]
+                date += self.data[0][3]+"-"+data[0][4]
                 
             for j in range(3):
-                self.data[0].pop(2)
+                data[0].pop(2)
              
-            self.data[0].insert(2,date)
-            print self.data
+            data[0].insert(2,date)
+            print data
             
             # calculating length
-            if self.data[0][5] == "":
-                if self.data[0][3].find("m") >= 0 or self.data[0][3].find("M"):
-                    if self.data[0][3][-2:] == self.data[0][4][-2:]:
-                        start = self.data[0][3][:-2].split(":")
-                        end = self.data[0][4][:-2].split(":")
+            if data[0][5] == "":
+                if data[0][3].find("m") >= 0 or data[0][3].find("M"):
+                    if data[0][3][-2:] == data[0][4][-2:]:
+                        start = data[0][3][:-2].split(":")
+                        end = data[0][4][:-2].split(":")
                         print start, end
                         hrs = int(end[0])-int(start[0])
                         mins = int(end[1])-int(start[1])
-                    elif (self.data[0][3].find("a") >= 0 or self.data[0][3].find("A") >= 0) and (self.data[0][4].find("p") >= 0 or self.data[0][4].find("P")):
-                        start = self.data[0][3][:-2].split(":")
-                        end = self.data[0][4][:-2].split(":")
+                    elif (data[0][3].find("a") >= 0 or data[0][3].find("A") >= 0) and (data[0][4].find("p") >= 0 or data[0][4].find("P")):
+                        start = data[0][3][:-2].split(":")
+                        end = data[0][4][:-2].split(":")
                         print start, end
                         hrs = int(end[0])-int(start[0])+12
                         mins = int(end[1])-int(start[1])
                 else:
-                    start = self.data[0][3].split(":")
-                    end = self.data[0][4].split(":")
+                    start = data[0][3].split(":")
+                    end = data[0][4].split(":")
                     print start, end
                     hrs = int(end[0])-int(start[0])
                     mins = int(end[1])-int(start[1])
                 for r in range(3):
-                    self.data[0].pop(3)
+                    data[0].pop(3)
                 if len(str(hrs)) < 2:
                     hrs = "0"+str(hrs)
                 else:
@@ -95,11 +127,11 @@ class Master:
                     mins = "0"+str(mins)
                 else:
                     mins = str(mins)
-                self.data[0].insert(3,hrs+":"+mins)
+                data[0].insert(3,hrs+":"+mins)
             elif self.data[0][3] == "":
                 for r in range(2):
-                    self.data[0].pop(3)
-            self.addToFile('data.txt',self.data)
+                    data[0].pop(3)
+            self.addToFile('data.txt',data)
             
         self.data = [[]]
             
@@ -159,6 +191,7 @@ class Home(Master):
     order = "TitleA"
     search = ""
     
+    # controls scrolling for all listboxes
     def OnVsb(self, *args):
         vlists = [self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]
         for i in range(len(vlists)):
@@ -168,12 +201,30 @@ class Home(Master):
         Master.__init__(self)
         self.window = window
         window.title("Hours Tracker - Home")
-        window.geometry("1090x850")
+        window.geometry("1090x880")
+        
+        # first tier menus
+        self.menubar = Menu(window)
+        self.filemenu = Menu(self.menubar, tearoff=False)
+        self.viewmenu = Menu(self.menubar, tearoff=False)
+        self.helpmenu = Menu(self.menubar, tearoff=0)
+        
+        
+        # second tier menus
+        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        
+        self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        
+        window.config(menu = self.menubar)
         
         # search items
         self.search = Entry(window, width=70)
         self.search.grid(row=1, column=1, columnspan=4)
-        self.searchButton = Button(window, text="Search")
+        self.searchButton = Button(window, text="Search", command=lambda submitData="search", numElement=1, listn=[self.search], other=None: self.retrieve(submitData,numElement,listn,other))
         self.searchButton.grid(row=1, column=5)
         
         # list of inputted events
@@ -193,31 +244,42 @@ class Home(Master):
         
         # creating listboxes individually (bc unfortunately you can't do the one scrollbar for all listboxes with a loop)
         self.subjectLbl = Label(window, text="Subject")
+        self.subjectLbl.grid(row=2, column=1)
         self.subjectList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar1.set, width=30, height=30)
         for k in range(len(self.listEvents)):
             self.subjectList.insert(END, self.listEvents[k][0])
         self.subjectList.grid(row=3, column=1)
         
+        self.categoryLbl = Label(window, text="Category")
+        self.categoryLbl.grid(row=2, column=2)
         self.categoryList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=20, height=30)
         for k in range(len(self.listEvents)):
             self.categoryList.insert(END, self.listEvents[k][1])
         self.categoryList.grid(row=3, column=2)
         
+        self.nameLbl = Label(window, text="With")
+        self.nameLbl.grid(row=2, column=3)
         self.nameList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar2.set, width=15, height=30)
         for k in range(len(self.listEvents)):
             self.nameList.insert(END, self.listEvents[k][2])
         self.nameList.grid(row=3, column=3)
         
+        self.dateLbl = Label(window, text="Date")
+        self.dateLbl.grid(row=2, column=4)
         self.dateList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=12, height=30)
         for k in range(len(self.listEvents)):
             self.dateList.insert(END, self.listEvents[k][3])
         self.dateList.grid(row=3, column=4)
         
+        self.lengthLbl = Label(window, text="Length")
+        self.lengthLbl.grid(row=2, column=5)
         self.lengthList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=7, height=30)
         for k in range(len(self.listEvents)):
             self.lengthList.insert(END, self.listEvents[k][4])
         self.lengthList.grid(row=3, column=5)
         
+        self.infoLbl = Label(window, text="Info")
+        self.infoLbl.grid(row=2, column=6)
         self.infoList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar3.set, width=20, height=30)
         for k in range(len(self.listEvents)):
             self.infoList.insert(END, self.listEvents[k][5])
@@ -229,22 +291,36 @@ class Home(Master):
         self.hscrollbar2.config(command=self.nameList.xview)
         self.hscrollbar3.config(command=self.infoList.xview)
         
-        
-        
 
-            
 class NewEntry(Master):
     attributes = ["Subject:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
     months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     days = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
     years = [2017,2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
-    data = [[]]
     
     def __init__(self,window):
         Master.__init__(self)
         self.window = window
         window.title = "Hours Tracker - New Entry"
         self.nodatey = IntVar()
+        
+        # first tier menus
+        self.menubar = Menu(window)
+        self.filemenu = Menu(self.menubar, tearoff=False)
+        self.viewmenu = Menu(self.menubar, tearoff=False)
+        self.helpmenu = Menu(self.menubar, tearoff=0)
+        
+        
+        # second tier menus
+        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        
+        self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        
+        window.config(menu = self.menubar)
 
         # creating labels for the inputs
         for i in range(len(self.attributes)):
@@ -263,11 +339,11 @@ class NewEntry(Master):
         self.names.grid(row=1, column=2, columnspan=3)
         
         self.month = self.combobox(self.months, "readonly")
-        self.month.config(width=10)
+        self.month.config(width=15)
         self.day = self.combobox(self.days, "normal")
-        self.day.config(width=7)
+        self.day.config(width=10)
         self.year = self.combobox(self.years, "normal")
-        self.year.config(width=7)
+        self.year.config(width=10)
         self.month.grid(row=2, column=2)
         self.day.grid(row=2, column=3)
         self.year.grid(row=2, column=4)
@@ -303,8 +379,178 @@ class NewEntry(Master):
                 widgets[i].config(state="normal")
         
         
+class Search(Master):
+    
+    # controls scrolling for all listboxes
+    def OnVsb(self, *args):
+        vlists = [self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]
+        for i in range(len(vlists)):
+            vlists[i].yview(*args)
+    
+    def display(self,sort,lists):
+        self.displayList = []
+        if sort == 0:
+            for i in range(len(self.foundTitle)):
+                self.displayList.append(self.listEntry[i])
+        elif sort == 1:
+            for i in range(len(self.foundCategory)):
+                self.displayList.append(self.listEntry[i])
+        elif sort == 2:
+            for i in range(len(self.foundName)):
+                self.displayList.append(self.listEntry[i])
+        elif sort == 3:
+            for i in range(len(self.foundDate)):
+                self.displayList.append(self.listEntry[i])
+        elif sort == 4:
+            for i in range(len(self.foundLength)):
+                self.displayList.append(self.listEntry[i])
+        elif sort == 5:
+            for i in range(len(self.foundInfo)):
+                self.displayList.append(self.listEntry[i])
+        
+        print self.displayList
+        
+        for i in range(len(lists)):
+            lists[i].delete(0,END)
+            for k in range(len(self.displayList)):
+                print i,k
+                lists[i].insert(END,self.displayList[k][i])
+        
+        # self.lb.delete(0, END) # clear
+        # for key, value in data:
+        #     self.lb.insert(END, key)
+        # self.data = data
+                
+        
+    
+    def __init__(self,window,keyword):
+        Master.__init__(self)
+        self.window = window
+        window.title = "Hours Tracker - Search"
+        window.geometry("1000x400")
+        
+        # first tier menus
+        self.menubar = Menu(window)
+        self.filemenu = Menu(self.menubar, tearoff=False)
+        self.viewmenu = Menu(self.menubar, tearoff=False)
+        self.helpmenu = Menu(self.menubar, tearoff=0)
+        
+        
+        # second tier menus
+        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        
+        self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        
+        window.config(menu = self.menubar)
+        
+        self.foundTitle = []
+        self.foundCategory = []
+        self.foundName = []
+        self.foundDate = []
+        self.foundLength = []
+        self.foundInfo = []
+        self.displayList =  [["a","b","c","d","e","f"]]
+        
+        self.listEntry = self.readFile('data.txt')
+        self.listEntry = self.listEntry[2:]
+        for i in range(len(self.listEntry)):
+            if self.listEntry[i][0].find(keyword) >= 0:
+                self.foundTitle.append([self.listEntry[i][0],i])
+            if self.listEntry[i][1].find(keyword) >= 0:
+                self.foundCategory.append([self.listEntry[i][1],i])
+            if self.listEntry[i][2].find(keyword) >= 0:
+                self.foundName.append([self.listEntry[i][2],i])
+            if self.listEntry[i][3].find(keyword) >= 0:
+                self.foundDate.append([self.listEntry[i][3],i])
+            if self.listEntry[i][4].find(keyword) >= 0:
+                self.foundLength.append([self.listEntry[i][4],i])
+            if self.listEntry[i][5].find(keyword) >= 0:
+                self.foundInfo.append([self.listEntry[i][5],i])
+                
+        print self.foundTitle, self.foundCategory, self.foundName, self.foundDate, self.foundLength, self.foundInfo
+        
+            
+        # list of inputted events
+        
+        print "hi",self.displayList
+        # self.listEvents.sort()
+        
+        # create vertical and 3 horizontal scrollbars
+        self.vscrollbar = Scrollbar(window)
+        self.vscrollbar.grid(column=7, rowspan=4, sticky=N+S)
+        self.hscrollbar1 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar1.grid(row=4, column=1, sticky=E+W)
+        self.hscrollbar2 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar2.grid(row=4, column=3, sticky=E+W)
+        self.hscrollbar3 = Scrollbar(window, orient=HORIZONTAL)
+        self.hscrollbar3.grid(row=4, column=6, sticky=E+W)
+        
+        # creating listboxes individually (bc unfortunately you can't do the one scrollbar for all listboxes with a loop)
+        self.subjectLbl = Label(window, text="Subject")
+        self.subjectLbl.grid(row=2, column=1)
+        self.subjectList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar1.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.subjectList.insert(END, self.displayList[k][0])
+        self.subjectList.grid(row=3, column=1)
+        
+        self.categoryLbl = Label(window, text="Category")
+        self.categoryLbl.grid(row=2, column=2)
+        self.categoryList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.categoryList.insert(END, self.displayList[k][1])
+        self.categoryList.grid(row=3, column=2)
+        
+        self.nameLbl = Label(window, text="With")
+        self.nameLbl.grid(row=2, column=3)
+        self.nameList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar2.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.nameList.insert(END, self.displayList[k][2])
+        self.nameList.grid(row=3, column=3)
+        
+        self.dateLbl = Label(window, text="Date")
+        self.dateLbl.grid(row=2, column=4)
+        self.dateList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.dateList.insert(END, self.displayList[k][3])
+        self.dateList.grid(row=3, column=4)
+        
+        self.lengthLbl = Label(window, text="Length")
+        self.lengthLbl.grid(row=2, column=5)
+        self.lengthList = Listbox(window, yscrollcommand=self.vscrollbar.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.lengthList.insert(END, self.displayList[k][4])
+        self.lengthList.grid(row=3, column=5)
+        
+        self.infoLbl = Label(window, text="Info")
+        self.infoLbl.grid(row=2, column=6)
+        self.infoList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar3.set, width=15, height=10)
+        for k in range(len(self.displayList)):
+            self.infoList.insert(END, self.displayList[k][5])
+        self.infoList.grid(row=3, column=6)
+        
+        # configuring scrollbars to respective listboxes
+        self.vscrollbar.config(command=self.OnVsb)
+        self.hscrollbar1.config(command=self.subjectList.xview)
+        self.hscrollbar2.config(command=self.nameList.xview)
+        self.hscrollbar3.config(command=self.infoList.xview)
+        
+        buttonList = ["Title","Category","Name","Date","Length","Info"]
+        for i in range(len(buttonList)):
+            buttons = Button(window, text=buttonList[i], command=lambda sort=i, lists=[self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]: self.display(sort,lists))
+            buttons.grid(column=i+1, row=1)
+        
+
 class CalculateHours(Master):
-    pass
+    def __init__(self,window):
+        Master.__init__(self)
+        self.window = window
+        window.title = "Hours Tracker - Calculate Hours"
+        
+        
         
         
 window = Tk()

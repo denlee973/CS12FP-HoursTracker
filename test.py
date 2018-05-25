@@ -74,33 +74,89 @@
 # 
 # mainloop()
 
-import Tkinter as tk
 
-class App:
-    def __init__(self):
-        self.root=tk.Tk()
-        self.vsb = tk.Scrollbar(orient="vertical", command=self.OnVsb)
-        self.lb1 = tk.Listbox(self.root, yscrollcommand=self.vsb.set)
-        self.lb2 = tk.Listbox(self.root, yscrollcommand=self.vsb.set)
-        self.vsb.pack(side="right",fill="y")
-        self.lb1.pack(side="left",fill="x", expand=True)
-        self.lb2.pack(side="left",fill="x", expand=True)
-        self.lb1.bind("<MouseWheel>", self.OnMouseWheel)
-        self.lb2.bind("<MouseWheel>", self.OnMouseWheel)
-        for i in range(100):
-            self.lb1.insert("end","item %s" % i)
-            self.lb2.insert("end","item %s" % i)
-        self.root.mainloop()
+# from Tkinter import *
+# 
+# root = Tk()
+# 
+# def hello():
+#     print "hello!"
+# 
+# menubar = Menu(root)
+# 
+# # create a pulldown menu, and add it to the menu bar
+# filemenu = Menu(menubar, tearoff=0)
+# filemenu.add_command(label="Open", command=hello)
+# filemenu.add_command(label="Save", command=hello)
+# filemenu.add_separator()
+# filemenu.add_command(label="Exit", command=root.quit)
+# menubar.add_cascade(label="File", menu=filemenu)
+# 
+# # create more pulldown menus
+# editmenu = Menu(menubar, tearoff=0)
+# editmenu.add_command(label="Cut", command=hello)
+# editmenu.add_command(label="Copy", command=hello)
+# editmenu.add_command(label="Paste", command=hello)
+# menubar.add_cascade(label="Edit", menu=editmenu)
+# 
+# helpmenu = Menu(menubar, tearoff=0)
+# helpmenu.add_command(label="About", command=hello)
+# menubar.add_cascade(label="Help", menu=helpmenu)
+# 
+# # display the menu
+# root.config(menu=menubar)
+# 
+# root.mainloop()
+# Try to import Python 2 name
+try:
+    import Tkinter as tk
+# Fall back to Python 3 if import fails
+except ImportError:
+    import tkinter as tk
+# 
+# class Example(tk.Frame):
+#     def __init__(self, root):
+#         tk.Frame.__init__(self, root)
+#         menubar = tk.Menu(self)
+#         fileMenu = tk.Menu(self)
+#         recentMenu = tk.Menu(self)
+# 
+#         menubar.add_cascade(label="File", menu=fileMenu)
+#         fileMenu.add_cascade(label="Open Recent", menu=recentMenu)
+#         for name in ("file1.txt", "file2.txt", "file3.txt"):
+#             recentMenu.add_command(label=name)
+# 
+# 
+#         root.configure(menu=menubar)
+#         root.geometry("200x200")
+# 
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     Example(root).pack(fill="both", expand=True)
+#     root.mainloop()
 
-    def OnVsb(self, *args):
-        self.lb1.yview(*args)
-        self.lb2.yview(*args)
 
-    def OnMouseWheel(self, event):
-        self.lb1.yview("scroll", event.delta,"units")
-        self.lb2.yview("scroll",event.delta,"units")
-        # this prevents default bindings from firing, which
-        # would end up scrolling the widget twice
-        return "break"
+class Application:
+    def __init__(self, master):
+        self.frame = tk.Frame(master)
+        self.frame.pack()    
+        self.okButton = tk.Button(self.frame, text="OK",
+                                  command=self.window_maker).pack()
+        self.quitButton = tk.Button(self.frame, text="Close",
+                                    command=self.frame.quit).pack()
+    def window_maker(self):
+        MakeWindow("A message to Toplevel")
 
-app=App()
+
+class MakeWindow(tk.Toplevel):
+    def __init__(self, message):
+        tk.Toplevel.__init__(self) #instead of super
+        self.message = message
+        self.display = tk.Label(self, text=message)
+        self.display.pack()
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    app = Application(root)
+    root.mainloop()
