@@ -1,55 +1,67 @@
+
+
+#-----------Denise Lee-----------
+#---------timeTracker.py---------
+#----------28 May 2018-----------
+#------------ICS4U-01------------
+
+
+# importing all libraries
 from Tkinter import *
 import tkFont
-import ttk
+import xlsxwriter
+import datetime
+import os
+# import ttk
 from abc import ABCMeta, abstractmethod
 
-
+# Master -- parent class
 class Master:
+    # make Master abstract
     __metaclass__ = ABCMeta
     text = []
+    # initializing Master
+    # @param: none
+    # @return: none
     def __init__(self):
+        # setting default font size to 12
         default_font = tkFont.nametofont("TkDefaultFont")
         default_font.configure(size=12)
+        
+        # menus (but doesn't work for child classes, so each child class has the menus in their respective inits)
         # # first tier menus
         # self.menubar = Menu(window)
         # self.filemenu = Menu(self.menubar, tearoff=False)
         # self.viewmenu = Menu(self.menubar, tearoff=False)
-        # self.helpmenu = Menu(self.menubar, tearoff=0)
+        # self.helpmenu = Menu(self.menubar, tearoff=False)
         # 
         # 
         # # second tier menus
-        # self.settingmenu = Menu(self.filemenu, tearoff=0)
+        # self.settingmenu = Menu(self.helpmenu, tearoff=False)
+        # self.sortbymenu = Menu(self.viewmenu, tearoff=False)
         # 
         # self.menubar.add_cascade(label="File", menu=self.filemenu)
+        # self.menubar.add_cascade(label="View", menu=self.viewmenu)
+        # self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         # self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
         # self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        # # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         # self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        # self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+        # self.sortbymenu.add("command", label="Subject")
         # 
         # window.config(menu = self.menubar)
-        
-    # def __init__(self, root):
-    #     tk.Frame.__init__(self, root)
-    #     menubar = tk.Menu(self)
-    #     fileMenu = tk.Menu(self)
-    #     recentMenu = tk.Menu(self)
-    # 
-    #     menubar.add_cascade(label="File", menu=fileMenu)
-    #     fileMenu.add_cascade(label="Open Recent", menu=recentMenu)
-    #     for name in ("file1.txt", "file2.txt", "file3.txt"):
-    #         recentMenu.add_command(label=name)
-    # 
-    # 
-    #     root.configure(menu=menubar)
-    #     root.geometry("200x200")
 
+    # creates a new window
+    # @param: windname(window name):class, *args
+    # @return: none
     def newPage(self,windname,*args):
         self.window.withdraw()
         self.window = windname(Toplevel(self.window),*args)
-        
-    def settings(self):
-        pass
     
+    # reads the given file
+    # @param: filename:str
+    # @return: self.text:str[[]]
     def readFile(self,filename):
         f = open(filename,'r')
         self.text = f.readlines()
@@ -58,20 +70,50 @@ class Master:
             self.text[i] = self.text[i][0:len(self.text[i])-1]
         for j in range(len(self.text)):
             self.text[j] = self.text[j].split("/t")
-        print self.text
         return self.text
     
-    def combobox(self,listv,style):
-        self.varname = ttk.Combobox(window, state=style)
-        self.varname['values'] = listv
-        self.varname.current(0)
-        return self.varname
-    
+    # retrieves the data in given entry/spinboxes
+    # @param: submitData:str, numElement:int, listn:[], other
+    # @return: none
     def retrieve(self,submitData,numElement,listn,other):
         data = [[]]
         for i in range(numElement):
             item = listn[i].get()
             data[0].append(item)
+            
+        if submitData == "calculate":
+            self.foundTitle = []
+            self.foundCategory = []
+            self.foundName = []
+            self.foundDate = []
+            self.foundLength = []
+            self.foundInfo = []
+            self.foundAll = []
+            self.foundList = [self.foundTitle,self.foundCategory,self.foundName,self.foundDate,self.foundLength,self.foundInfo,self.foundAll]
+            self.displayList = [['','','','','','']]
+            
+            self.listEntry = self.readFile(self.yourfile)
+            self.listEntry = self.listEntry[2:]
+            for i in range(len(self.listEntry)):
+                if self.listEntry[i][0].find(item) >= 0:
+                    self.foundTitle.append([self.listEntry[i][0],i])
+                if self.listEntry[i][1].find(item) >= 0:
+                    self.foundCategory.append([self.listEntry[i][1],i])
+                if self.listEntry[i][2].find(item) >= 0:
+                    self.foundName.append([self.listEntry[i][2],i])
+                if self.listEntry[i][3].find(item) >= 0:
+                    self.foundDate.append([self.listEntry[i][3],i])
+                if self.listEntry[i][4].find(item) >= 0:
+                    self.foundLength.append([self.listEntry[i][4],i])
+                if self.listEntry[i][5].find(item) >= 0:
+                    self.foundInfo.append([self.listEntry[i][5],i])
+            for i in range(5):
+                for k in range(len(self.foundList[i])):
+                    self.foundAll.append(self.foundList[i][k])
+                    
+            print self.foundList
+            self.newPage(CalculateHours,item,self.foundList)
+            
         if submitData == "search":
             self.newPage(Search,item)
         
@@ -131,7 +173,7 @@ class Master:
             elif self.data[0][3] == "":
                 for r in range(2):
                     data[0].pop(3)
-            self.addToFile('data.txt',data)
+            self.addToFile(self.yourfile,data)
             
         self.data = [[]]
             
@@ -145,17 +187,97 @@ class Master:
             print line
             f.write(line)
         f.close()
-            
+    
+    def exportData(self):
+        data = self.readFile(self.yourfile)[2:]
+        workbook  = xlsxwriter.Workbook('timeTracker'+str(datetime.date.today())+'.xlsx')
+        worksheet = workbook.add_worksheet()
+        worksheet.set_column('A:A', 20)
+        titles = ["Subject","Category","With","Date","Length","Info"]
+        for r in range(6):
+            worksheet.write(0,r,titles[r])
+        for i in range(len(data)):
+            for k in range(len(data[i])):
+                worksheet.write(i+1, k, data[i][k])
         
+        workbook.close()
+
+class ExportXls(Master):
+    def __init__(self,window,yourfile):
+        Master.__init__(self)
+        self.window = window
+        window.geometry('500x80')
+        window.title("timeTracker - Export Data")
+        self.exportData()
+        Label(window, text="Data has been exported to timeTracker{}.xlsx".format(str(datetime.date.today()))).pack()        
+        Button(window, text="Ok", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile)).pack()
+
+class ClearData(Master):
+    def __init__(self,window,yourfile):
+        Master.__init__(self)
+        self.window = window
+        window.geometry('400x90')
+        window.title("timeTracker - Clear Data")
+        self.yourfile = yourfile
+        
+        Label(window, text="Are you sure you would like to clear all data?\nThis action is irreversible.".format(str(datetime.date.today()))).pack()        
+        Button(window, text="Yes", command=lambda: self.clearFile()).pack(side=RIGHT)
+        Button(window, text="Cancel", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile)).pack(side=RIGHT)
+        
+    def clearFile(self):
+        acc = self.readFile(self.yourfile)[:2]
+        f = open(self.yourfile, 'w')
+        f.write(acc[0][0]+"\n"+acc[1][0])
+        f.close()
+        self.newPage(Home,self.yourfile)
+
+class NewAcc(Master):
+    def __init__(self,window):
+        Master.__init__(self)
+        self.window = window
+        window.title("timeTracker - Create New Account")
+        window.geometry("300x100")
+        
+        labels = ["Username:","Password:","Confirm Password:","Activation Key"]
+        for k in range(4):
+            Label(window, text=labels[k]).grid(row=k+1,column=1)
+        
+        Button(window, text="Submit", command=lambda windname=LogIn: self.newPage(windname)).pack()
+
+class IncorrectPass(Master):
+    def __init__(self,window):
+        Master.__init__(self)
+        self.window = window
+        window.title("timeTracker - Log In")
+        window.geometry("300x100")
+        
+        Label(window, text="Incorrect password or username.\nPlease try again.").pack()        
+        Button(window, text="Ok", command=lambda windname=LogIn: self.newPage(windname)).pack()
+        
+class LogOut(Master):
+    def __init__(self,window):
+        Master.__init__(self)
+        self.window = window
+        window.geometry('300x80')
+        window.title("timeTracker - Logged Out")
+        
+        bel(window, text="You have been logged out.").pack()        
+        Button(window, text="Ok", command=self.window.quit).pack()
+ 
+# LogIn -- creates login window
 class LogIn(Master):
     username = ""
     __password = ""
+    yourfile = ''
     
+    # initializing LogIn class
+    # @param: window:Tk()
+    # @return: none
     def __init__(self,window):
         Master.__init__(self)
         self.window = window
         window.geometry("200x100")
-        window.title("Hours Tracker - Log In")
+        window.title("timeTracker - Log In")
         
         # username and password labels
         self.userlbl = Label(text="Username:")
@@ -174,17 +296,28 @@ class LogIn(Master):
         self.login.grid(row=3, column=1, columnspan=2)
         
     # checks if username and password match
+    # @param: none
+    # @return: bool
     def checkUserPass(self):
         self.u = self.user.get()
-        self.p = self.passw.get()
-        if self.u == self.readFile('data.txt')[0][0] and self.p == self.readFile('data.txt')[1][0]:
-            self.window.withdraw()
-            self.window = Home(Toplevel(self.window))
-            print "You have logged in."
-            return True
-        else:
-            return False
+        self.__p = self.passw.get()
+        files = []
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        for file in os.listdir(dir_path):
+            if file.endswith(".txt"):
+                files.append(os.path.join(dir_path, file))
+        for i in range(len(files)):
+            if self.u == self.readFile(files[i])[0][0] and self.__p == self.readFile(files[i])[1][0]:
+                print "You have logged in."
+                self.yourfile = files[i]
+                self.newPage(Home,self.yourfile)
+                return True
+            else:
+                self.newPage(IncorrectPass)
+                return False
+
         
+# Home -- creates homepage that displays all data
 class Home(Master):
     listEvents = []
     listButtonNames = []
@@ -192,32 +325,46 @@ class Home(Master):
     search = ""
     
     # controls scrolling for all listboxes
+    # @param: *args
+    # @return: none
     def OnVsb(self, *args):
         vlists = [self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]
         for i in range(len(vlists)):
             vlists[i].yview(*args)
-
-    def __init__(self,window):
+            
+    # initialize Home class
+    # @param: window:Tk()
+    # @return: none
+    def __init__(self,window,yourfile):
         Master.__init__(self)
+        self.yourfile = yourfile
         self.window = window
-        window.title("Hours Tracker - Home")
+        window.title("timeTracker - Home")
         window.geometry("1090x880")
         
         # first tier menus
         self.menubar = Menu(window)
         self.filemenu = Menu(self.menubar, tearoff=False)
         self.viewmenu = Menu(self.menubar, tearoff=False)
-        self.helpmenu = Menu(self.menubar, tearoff=0)
-        
+        self.helpmenu = Menu(self.menubar, tearoff=False)
         
         # second tier menus
-        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        self.settingmenu = Menu(self.helpmenu, tearoff=False)
+        self.sortbymenu = Menu(self.viewmenu, tearoff=False)
         
         self.menubar.add_cascade(label="File", menu=self.filemenu)
-        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+        self.menubar.add_cascade(label="View", menu=self.viewmenu)
+        self.menubar.add_cascade(label="Help", menu=self.helpmenu)
+        self.filemenu.add("command", label="Home", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile))
         self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        self.settingmenu.add("command", label="Export Data", command=lambda windname=ExportXls: self.newPage(windname))
+        self.settingmenu.add("command", label="Clear All Data", command=lambda windname=ClearData, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.settingmenu.add("command", label="Log Out/Quit", command=lambda windname=LogOut: self.newPage(windname))
+        self.settingmenu.add("command", label="About")
+        # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+        # self.sortbymenu.add("command", label="Subject")
         
         window.config(menu = self.menubar)
         
@@ -228,8 +375,7 @@ class Home(Master):
         self.searchButton.grid(row=1, column=5)
         
         # list of inputted events
-        self.listEvents = self.readFile('data.txt')[2:]
-        print "hi",self.listEvents
+        self.listEvents = self.readFile(self.yourfile)[2:]
         # self.listEvents.sort()
         
         # create vertical and 3 horizontal scrollbars
@@ -291,34 +437,43 @@ class Home(Master):
         self.hscrollbar2.config(command=self.nameList.xview)
         self.hscrollbar3.config(command=self.infoList.xview)
         
-
+# NewEntry -- creates new entry window to receive data
 class NewEntry(Master):
     attributes = ["Subject:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
     months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     days = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
-    years = [2017,2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
+    years = [2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
     
+    # initialize NewEntry class
+    # @param: window:Tk()
+    # @return: none
     def __init__(self,window):
         Master.__init__(self)
         self.window = window
-        window.title = "Hours Tracker - New Entry"
+        window.title = "timeTracker - New Entry"
         self.nodatey = IntVar()
+        self.nolengthy = IntVar()
         
         # first tier menus
         self.menubar = Menu(window)
         self.filemenu = Menu(self.menubar, tearoff=False)
         self.viewmenu = Menu(self.menubar, tearoff=False)
-        self.helpmenu = Menu(self.menubar, tearoff=0)
+        self.helpmenu = Menu(self.menubar, tearoff=False)
         
         
         # second tier menus
-        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        self.settingmenu = Menu(self.helpmenu, tearoff=False)
+        self.sortbymenu = Menu(self.viewmenu, tearoff=False)
         
         self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.menubar.add_cascade(label="View", menu=self.viewmenu)
+        self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
         self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+        # self.sortbymenu.add("command", label="Subject")
         
         window.config(menu = self.menubar)
 
@@ -332,22 +487,18 @@ class NewEntry(Master):
         # generating and grid-ing the input stuff
         self.subject = Entry(window, width=70)
         self.names = Entry(window, width=70)
-        # want to make placeholder grey but I'll do that later.
-        # self.names.insert(0, 'Please enter names of people associated with this event separated by commas.')
-        # self.names.bind("<FocusIn>", lambda args: self.names.delete('0', 'end'))
+        self.names.insert(0, 'Please enter names of people associated with this event separated by commas.')
+        self.names.bind("<FocusIn>", lambda args: self.names.delete('0', 'end'))
         self.subject.grid(row=0, column=2, columnspan=3)
         self.names.grid(row=1, column=2, columnspan=3)
         
-        self.month = self.combobox(self.months, "readonly")
-        self.month.config(width=15)
-        self.day = self.combobox(self.days, "normal")
-        self.day.config(width=10)
-        self.year = self.combobox(self.years, "normal")
-        self.year.config(width=10)
+        self.month = Spinbox(window,values=self.months,width=15)
+        self.day = Spinbox(window,values=self.days,width=15)
+        self.year = Spinbox(window,values=self.years,width=15)
         self.month.grid(row=2, column=2)
         self.day.grid(row=2, column=3)
         self.year.grid(row=2, column=4)
-        self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda widgets=[self.month,self.day,self.year]: self.disableWidget(widgets))
+        self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda button="nodate", widgets=[self.month,self.day,self.year]: self.disableWidget(button,widgets))
         self.nodate.grid(row=2, column=5)
         
         # add keybind to which type of length using (ie. which one has text and which doesn't)
@@ -356,11 +507,17 @@ class NewEntry(Master):
         self.tend = Entry(window, width=28)
         self.tstart.grid(row=3, column=2)
         self.tend.grid(row=3, column=4)
-        # self.twentyfour = Checkbutton(self.window, text="24-Hour", variable=self.twnty4)
-
         
         self.length = Entry(window, width=70)
+        self.length.insert(0, 'hh:mm')
         self.length.grid(row=4, column=2, columnspan=3)
+        
+        self.tstart.bind("<FocusIn>", lambda args: self.disableWidget("length",[self.tstart,self.tend,self.length]))
+        self.tend.bind("<FocusIn>", lambda args: self.disableWidget("length",[self.tstart,self.tend,self.length]))
+        self.length.bind("<FocusIn>", lambda args: self.disableWidget("time",[self.tstart,self.tend,self.length]))
+        
+        self.nolength = Checkbutton(self.window, text="No Length", variable=self.nolengthy, command=lambda button="nolength", widgets=[self.tstart,self.tend,self.length]: self.disableWidget(button,widgets))
+        self.nolength.grid(row=4, column=5)
         
         self.info = Entry(window, width=70)
         self.info.grid(row=5, column=2, columnspan=3)
@@ -370,23 +527,50 @@ class NewEntry(Master):
         self.submit = Button(window, text="Submit", command= lambda submitData="newentry", numElement=9, listn=self.listn, other=self.months: self.retrieve(submitData, numElement, listn, other))
         self.submit.grid(row=6, column=1, columnspan=4)
         
-    def disableWidget(self,widgets):
-        if self.nodatey.get() == 1:
-            for i in range(len(widgets)):
-                widgets[i].config(state="disabled")
-        else:
-            for i in range(len(widgets)):
-                widgets[i].config(state="normal")
-        
-        
+    # disables widgets when things are clicked
+    # @param: button:str, widgets:object[]
+    # @return: none
+    def disableWidget(self,button,widgets):
+        if button == "nodate":
+            if self.nodatey.get() == 1:
+                for i in range(len(widgets)):
+                    widgets[i].delete(0,'end')
+                    widgets[i].config(state="disabled")
+            else:
+                for i in range(len(widgets)):
+                    widgets[i].config(state="normal")
+        if button == "nolength":
+            if self.nolengthy.get() == 1:
+                for i in range(len(widgets)):
+                    widgets[i].delete(0,'end')
+                    widgets[i].config(state="disabled")
+            else:
+                for i in range(len(widgets)):
+                    widgets[i].config(state="normal")
+        elif button == "length":
+            widgets[0].config(bg="white")
+            widgets[1].config(bg="white")
+            widgets[2].config(bg="grey")
+        elif button == "time":
+            widgets[0].config(bg="grey")
+            widgets[1].config(bg="grey")
+            widgets[2].config(bg="white")
+            widgets[2].delete('0', 'end')
+
+# Search -- displays events with search term
 class Search(Master):
     
     # controls scrolling for all listboxes
+    # @param: *args
+    # @return: none
     def OnVsb(self, *args):
         vlists = [self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]
         for i in range(len(vlists)):
             vlists[i].yview(*args)
     
+    # changes which list is being displayed
+    # @param: sort:int, lists:object[]
+    # @return: none
     def display(self,sort,lists):
         self.displayList = []
         if sort == 0:
@@ -415,35 +599,37 @@ class Search(Master):
             for k in range(len(self.displayList)):
                 print i,k
                 lists[i].insert(END,self.displayList[k][i])
-        
-        # self.lb.delete(0, END) # clear
-        # for key, value in data:
-        #     self.lb.insert(END, key)
-        # self.data = data
-                
-        
     
-    def __init__(self,window,keyword):
+    # initialize Search window
+    # @param: window:Tk(), keyword:str
+    # @return: none
+    def __init__(self,window,keyword,yourfile):
         Master.__init__(self)
         self.window = window
-        window.title = "Hours Tracker - Search"
+        self.yourfile = yourfile
+        window.title = "timeTracker - Search"
         window.geometry("1000x400")
         
         # first tier menus
         self.menubar = Menu(window)
         self.filemenu = Menu(self.menubar, tearoff=False)
         self.viewmenu = Menu(self.menubar, tearoff=False)
-        self.helpmenu = Menu(self.menubar, tearoff=0)
+        self.helpmenu = Menu(self.menubar, tearoff=False)
         
         
         # second tier menus
-        self.settingmenu = Menu(self.filemenu, tearoff=0)
+        self.settingmenu = Menu(self.helpmenu, tearoff=False)
+        self.sortbymenu = Menu(self.viewmenu, tearoff=False)
         
         self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.menubar.add_cascade(label="View", menu=self.viewmenu)
+        self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
         self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        self.viewmenu.add_cascade(label="Sort by", menu=self.viewmenu)
+        self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+        self.sortbymenu.add("command", label="Subject")
         
         window.config(menu = self.menubar)
         
@@ -453,9 +639,10 @@ class Search(Master):
         self.foundDate = []
         self.foundLength = []
         self.foundInfo = []
-        self.displayList =  [["a","b","c","d","e","f"]]
+        self.displayList = [['','','','','','']]
         
-        self.listEntry = self.readFile('data.txt')
+        # list of inputted events
+        self.listEntry = self.readFile(self.yourfile)
         self.listEntry = self.listEntry[2:]
         for i in range(len(self.listEntry)):
             if self.listEntry[i][0].find(keyword) >= 0:
@@ -474,7 +661,6 @@ class Search(Master):
         print self.foundTitle, self.foundCategory, self.foundName, self.foundDate, self.foundLength, self.foundInfo
         
             
-        # list of inputted events
         
         print "hi",self.displayList
         # self.listEvents.sort()
@@ -538,22 +724,111 @@ class Search(Master):
         self.hscrollbar2.config(command=self.nameList.xview)
         self.hscrollbar3.config(command=self.infoList.xview)
         
-        buttonList = ["Title","Category","Name","Date","Length","Info"]
+        buttonList = ["Title","Category","Name","Date","Length","Info","All"]
         for i in range(len(buttonList)):
             buttons = Button(window, text=buttonList[i], command=lambda sort=i, lists=[self.subjectList,self.categoryList,self.nameList,self.dateList,self.lengthList,self.infoList]: self.display(sort,lists))
             buttons.grid(column=i+1, row=1)
         
 
 class CalculateHours(Master):
-    def __init__(self,window):
-        Master.__init__(self)
-        self.window = window
-        window.title = "Hours Tracker - Calculate Hours"
-        
+#     def display(self,sort,lists):
+#         self.displayList = []
+#         if sort == 0:
+#             for i in range(len(self.foundTitle)):
+#                 self.displayList.append(self.listEntry[i])
+#         elif sort == 1:
+#             for i in range(len(self.foundCategory)):
+#                 self.displayList.append(self.listEntry[i])
+#         elif sort == 2:
+#             for i in range(len(self.foundName)):
+#                 self.displayList.append(self.listEntry[i])
+#         elif sort == 3:
+#             for i in range(len(self.foundDate)):
+#                 self.displayList.append(self.listEntry[i])
+#         elif sort == 4:
+#             for i in range(len(self.foundLength)):
+#                 self.displayList.append(self.listEntry[i])
+#         elif sort == 5:
+#             for i in range(len(self.foundInfo)):
+#                 self.displayList.append(self.listEntry[i])
+#         
+#         print self.displayList
+#         
+#         for i in range(len(lists)):
+#             lists[i].delete(0,END)
+#             for k in range(len(self.displayList)):
+#                 print i,k
+#                 lists[i].insert(END,self.displayList[k][i])
+#     
+#     def __init__(self,window,events):
+#         Master.__init__(self)
+#         self.window = window
+#         window.title = "timeTracker - Calculate Hours"
+#         
+#         # first tier menus
+#         self.menubar = Menu(window)
+#         self.filemenu = Menu(self.menubar, tearoff=False)
+#         self.viewmenu = Menu(self.menubar, tearoff=False)
+#         self.helpmenu = Menu(self.menubar, tearoff=False)
+#         
+#         
+#         # second tier menus
+#         self.settingmenu = Menu(self.helpmenu, tearoff=False)
+#         self.sortbymenu = Menu(self.viewmenu, tearoff=False)
+#         
+#         self.menubar.add_cascade(label="File", menu=self.filemenu)
+#         self.menubar.add_cascade(label="View", menu=self.viewmenu)
+#         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
+#         self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
+#         self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+#         self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
+#         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+#         self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+#         self.sortbymenu.add("command", label="Subject")
+#         
+#         window.config(menu = self.menubar)
+#         
+#         # search items
+#         self.sort = Entry(window, width=70)
+#         self.sort.grid(row=1, column=1, columnspan=4)
+#         self.sortButton = Button(window, text="Sort", command=lambda submitData="calculate", numElement=1, listn=[self.sort], other=None: self.retrieve(submitData,numElement,listn,other))
+#         self.sortButton.grid(row=1, column=5)
+#             
+#         # list of inputted events
+#         self.display(0,)
+#         print "hi",self.displayList
+#         # self.listEvents.sort()
+#         
+#         # create vertical and 3 horizontal scrollbars
+#         self.vscrollbar = Scrollbar(window)
+#         self.vscrollbar.grid(column=3, rowspan=4, sticky=N+S)
+#         self.hscrollbar1 = Scrollbar(window, orient=HORIZONTAL)
+#         self.hscrollbar1.grid(row=4, column=1, sticky=E+W)
+# 
+#         # creating listboxes individually (bc unfortunately you can't do the one scrollbar for all listboxes with a loop)
+#         self.subjectLbl = Label(window, text="Subject")
+#         self.subjectLbl.grid(row=2, column=1)
+#         self.subjectList = Listbox(window, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar1.set, width=15, height=10)
+#         for k in range(len(self.displayList)):
+#             self.subjectList.insert(END, self.displayList[k][0])
+#         self.subjectList.grid(row=3, column=1)
+#         
+#     def calculate(self,events):
+#         length = IntVar()
+#         hrs = 0
+#         mins = 0
+#         for i in range(len(events)):
+#             length = events[4].split(':')
+#             hrs += int(length[0])
+#             mins += int(length[1])
+#         print hrs,mins
+#         totalLbl = Label(self.window, text="{} hrs, {} mins".format(hrs,mins))
+#         totalLbl.grid(column=1, columnspan=2, row=4)
+        pass
         
         
         
 window = Tk()
-home = Home(window)
+home = LogIn(window)
 window.mainloop()
     
