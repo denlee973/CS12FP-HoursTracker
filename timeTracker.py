@@ -10,6 +10,7 @@
 from Tkinter import *
 import tkFont
 import xlsxwriter
+import random
 import datetime
 import os
 # import ttk
@@ -77,49 +78,57 @@ class Master:
     # @return: none
     def retrieve(self,submitData,numElement,listn,other):
         data = [[]]
-        for i in range(numElement):
+        for i in range(len(listn)):
             item = listn[i].get()
             data[0].append(item)
+        
+        if submitData == "newacc":
+            yourfile = str(random.randint(10000,99999))+".txt"
+            f = open(yourfile,'w+')
+            f.write(data[0][0]+'\n'+data[0][1])
+            f.close()
             
-        if submitData == "calculate":
-            self.foundTitle = []
-            self.foundCategory = []
-            self.foundName = []
-            self.foundDate = []
-            self.foundLength = []
-            self.foundInfo = []
-            self.foundAll = []
-            self.foundList = [self.foundTitle,self.foundCategory,self.foundName,self.foundDate,self.foundLength,self.foundInfo,self.foundAll]
-            self.displayList = [['','','','','','']]
+            self.newPage(Home,yourfile)
             
-            self.listEntry = self.readFile(self.yourfile)
-            self.listEntry = self.listEntry[2:]
-            for i in range(len(self.listEntry)):
-                if self.listEntry[i][0].find(item) >= 0:
-                    self.foundTitle.append([self.listEntry[i][0],i])
-                if self.listEntry[i][1].find(item) >= 0:
-                    self.foundCategory.append([self.listEntry[i][1],i])
-                if self.listEntry[i][2].find(item) >= 0:
-                    self.foundName.append([self.listEntry[i][2],i])
-                if self.listEntry[i][3].find(item) >= 0:
-                    self.foundDate.append([self.listEntry[i][3],i])
-                if self.listEntry[i][4].find(item) >= 0:
-                    self.foundLength.append([self.listEntry[i][4],i])
-                if self.listEntry[i][5].find(item) >= 0:
-                    self.foundInfo.append([self.listEntry[i][5],i])
-            for i in range(5):
-                for k in range(len(self.foundList[i])):
-                    self.foundAll.append(self.foundList[i][k])
-                    
-            print self.foundList
-            self.newPage(CalculateHours,item,self.foundList)
+        # if submitData == "calculate":
+        #     self.foundTitle = []
+        #     self.foundCategory = []
+        #     self.foundName = []
+        #     self.foundDate = []
+        #     self.foundLength = []
+        #     self.foundInfo = []
+        #     self.foundAll = []
+        #     self.foundList = [self.foundTitle,self.foundCategory,self.foundName,self.foundDate,self.foundLength,self.foundInfo,self.foundAll]
+        #     self.displayList = [['','','','','','']]
+        #     
+        #     self.listEntry = self.readFile(self.yourfile)
+        #     self.listEntry = self.listEntry[2:]
+        #     for i in range(len(self.listEntry)):
+        #         if self.listEntry[i][0].find(item) >= 0:
+        #             self.foundTitle.append([self.listEntry[i][0],i])
+        #         if self.listEntry[i][1].find(item) >= 0:
+        #             self.foundCategory.append([self.listEntry[i][1],i])
+        #         if self.listEntry[i][2].find(item) >= 0:
+        #             self.foundName.append([self.listEntry[i][2],i])
+        #         if self.listEntry[i][3].find(item) >= 0:
+        #             self.foundDate.append([self.listEntry[i][3],i])
+        #         if self.listEntry[i][4].find(item) >= 0:
+        #             self.foundLength.append([self.listEntry[i][4],i])
+        #         if self.listEntry[i][5].find(item) >= 0:
+        #             self.foundInfo.append([self.listEntry[i][5],i])
+        #     for i in range(5):
+        #         for k in range(len(self.foundList[i])):
+        #             self.foundAll.append(self.foundList[i][k])
+        #             
+        #     print self.foundList
+        #     self.newPage(CalculateHours,item,self.foundList)
             
         if submitData == "search":
-            self.newPage(Search,item)
+            self.newPage(Search,item,other)
         
         if submitData == "newentry":
             # date formatting to mm-dd-yyyy
-            imon = data[0][2]
+            imon = data[0][3]
             date = ""
             for i in range(len(other)):
                 if imon == other[i]:
@@ -127,40 +136,36 @@ class Master:
                         date += "0"+str(i+1)+"-"
                     else:
                         date += str(i+1)+"-"
-            if len(data[0][3]) < 2:
-                date += "0"+self.data[0][3]+"-"+data[0][4]
+            if len(data[0][4]) < 2:
+                date += "0"+data[0][4]+"-"+data[0][5]
             else:
-                date += self.data[0][3]+"-"+data[0][4]
+                date += data[0][4]+"-"+data[0][5]
                 
             for j in range(3):
-                data[0].pop(2)
+                data[0].pop(3)
              
-            data[0].insert(2,date)
-            print data
+            data[0].insert(3,date)
             
             # calculating length
-            if data[0][5] == "":
-                if data[0][3].find("m") >= 0 or data[0][3].find("M"):
-                    if data[0][3][-2:] == data[0][4][-2:]:
-                        start = data[0][3][:-2].split(":")
-                        end = data[0][4][:-2].split(":")
-                        print start, end
+            if data[0][6] == "":
+                if data[0][4].find("m") >= 0 or data[0][4].find("M") >= 0:
+                    if data[0][4][-2:] == data[0][5][-2:]:
+                        start = data[0][4][:-2].split(":")
+                        end = data[0][5][:-2].split(":")
                         hrs = int(end[0])-int(start[0])
                         mins = int(end[1])-int(start[1])
-                    elif (data[0][3].find("a") >= 0 or data[0][3].find("A") >= 0) and (data[0][4].find("p") >= 0 or data[0][4].find("P")):
-                        start = data[0][3][:-2].split(":")
-                        end = data[0][4][:-2].split(":")
-                        print start, end
+                    elif (data[0][4].find("a") >= 0 or data[0][4].find("A") >= 0) and (data[0][5].find("p") >= 0 or data[0][5].find("P")):
+                        start = data[0][4][:-2].split(":")
+                        end = data[0][5][:-2].split(":")
                         hrs = int(end[0])-int(start[0])+12
                         mins = int(end[1])-int(start[1])
                 else:
-                    start = data[0][3].split(":")
-                    end = data[0][4].split(":")
-                    print start, end
+                    start = data[0][4].split(":")
+                    end = data[0][5].split(":")
                     hrs = int(end[0])-int(start[0])
                     mins = int(end[1])-int(start[1])
                 for r in range(3):
-                    data[0].pop(3)
+                    data[0].pop(4)
                 if len(str(hrs)) < 2:
                     hrs = "0"+str(hrs)
                 else:
@@ -169,11 +174,12 @@ class Master:
                     mins = "0"+str(mins)
                 else:
                     mins = str(mins)
-                data[0].insert(3,hrs+":"+mins)
-            elif self.data[0][3] == "":
+                data[0].insert(4,hrs+":"+mins)
+            elif data[0][3] == "":
                 for r in range(2):
-                    data[0].pop(3)
+                    data[0].pop(4)
             self.addToFile(self.yourfile,data)
+            self.newPage(Home,self.yourfile)
             
         self.data = [[]]
             
@@ -184,12 +190,11 @@ class Master:
             for j in range(len(adding[i])-1):
                 line += str(adding[i][j])+"/t"
             line += str(adding[i][len(adding[i])-1])
-            print line
             f.write(line)
         f.close()
     
-    def exportData(self):
-        data = self.readFile(self.yourfile)[2:]
+    def exportData(self,yourfile):
+        data = self.readFile(yourfile)[2:]
         workbook  = xlsxwriter.Workbook('timeTracker'+str(datetime.date.today())+'.xlsx')
         worksheet = workbook.add_worksheet()
         worksheet.set_column('A:A', 20)
@@ -202,13 +207,22 @@ class Master:
         
         workbook.close()
 
+class About(Master):
+    def __init__(self,window,yourfile):
+        Master.__init__(self)
+        self.window = window
+        window.geometry('500x300')
+        window.title("timeTracker - About")
+        Label(window, text="timeTracker 1.0\n2018\nBy Denise Lee\n*boop*").pack()        
+        Button(window, text="Ok", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile)).pack()
+
 class ExportXls(Master):
     def __init__(self,window,yourfile):
         Master.__init__(self)
         self.window = window
         window.geometry('500x80')
         window.title("timeTracker - Export Data")
-        self.exportData()
+        self.exportData(yourfile)
         Label(window, text="Data has been exported to timeTracker{}.xlsx".format(str(datetime.date.today()))).pack()        
         Button(window, text="Ok", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile)).pack()
 
@@ -216,19 +230,23 @@ class ClearData(Master):
     def __init__(self,window,yourfile):
         Master.__init__(self)
         self.window = window
-        window.geometry('400x90')
+        window.config(bg="red")
+        window.geometry('410x100')
         window.title("timeTracker - Clear Data")
         self.yourfile = yourfile
         
-        Label(window, text="Are you sure you would like to clear all data?\nThis action is irreversible.".format(str(datetime.date.today()))).pack()        
+        Label(window,bg="red", text="Are you sure you would like to clear all data?\nThis action is irreversible.".format(str(datetime.date.today()))).pack()        
         Button(window, text="Yes", command=lambda: self.clearFile()).pack(side=RIGHT)
         Button(window, text="Cancel", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile)).pack(side=RIGHT)
         
     def clearFile(self):
         acc = self.readFile(self.yourfile)[:2]
-        f = open(self.yourfile, 'w')
-        f.write(acc[0][0]+"\n"+acc[1][0])
-        f.close()
+        os.remove(self.yourfile)
+        self.yourfile = str(random.randint(10000,99999))+".txt"
+        f = open(self.yourfile,'w+')
+        f.write(acc[0][0]+'\n'+acc[0][1])
+        f.close
+        
         self.newPage(Home,self.yourfile)
 
 class NewAcc(Master):
@@ -236,13 +254,18 @@ class NewAcc(Master):
         Master.__init__(self)
         self.window = window
         window.title("timeTracker - Create New Account")
-        window.geometry("300x100")
+        window.geometry("310x140")
         
-        labels = ["Username:","Password:","Confirm Password:","Activation Key"]
-        for k in range(4):
+        labels = ["Username:","Password:"]
+        for k in range(2):
             Label(window, text=labels[k]).grid(row=k+1,column=1)
         
-        Button(window, text="Submit", command=lambda windname=LogIn: self.newPage(windname)).pack()
+        self.userEnt = Entry(window)
+        self.userEnt.grid(row=1, column=2)
+        self.passEnt = Entry(window)
+        self.passEnt.grid(row=2, column=2)
+        
+        Button(window, text="Submit", command=lambda submitData="newacc", numElement=2, listn=[self.userEnt,self.passEnt],other=None:self.retrieve(submitData,numElement,listn,other)).grid(row=4, column=1, columnspan=2)
 
 class IncorrectPass(Master):
     def __init__(self,window):
@@ -261,7 +284,7 @@ class LogOut(Master):
         window.geometry('300x80')
         window.title("timeTracker - Logged Out")
         
-        bel(window, text="You have been logged out.").pack()        
+        Label(window, text="You have been logged out.").pack()        
         Button(window, text="Ok", command=self.window.quit).pack()
  
 # LogIn -- creates login window
@@ -276,7 +299,7 @@ class LogIn(Master):
     def __init__(self,window):
         Master.__init__(self)
         self.window = window
-        window.geometry("200x100")
+        window.geometry("250x160")
         window.title("timeTracker - Log In")
         
         # username and password labels
@@ -294,6 +317,7 @@ class LogIn(Master):
         # login button
         self.login = Button(window, text="Log In", command=self.checkUserPass)
         self.login.grid(row=3, column=1, columnspan=2)
+        Button(window, text="Create New Account", command=lambda windname=NewAcc: self.newPage(windname)).grid(row=4, column=1, columnspan=2)
         
     # checks if username and password match
     # @param: none
@@ -356,13 +380,13 @@ class Home(Master):
         self.menubar.add_cascade(label="View", menu=self.viewmenu)
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         self.filemenu.add("command", label="Home", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile))
-        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry, yourfile=yourfile: self.newPage(windname,yourfile))
         # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        self.settingmenu.add("command", label="Export Data", command=lambda windname=ExportXls: self.newPage(windname))
+        self.settingmenu.add("command", label="Export Data", command=lambda windname=ExportXls, yourfile=yourfile: self.newPage(windname,yourfile))
         self.settingmenu.add("command", label="Clear All Data", command=lambda windname=ClearData, yourfile=yourfile: self.newPage(windname,yourfile))
         self.settingmenu.add("command", label="Log Out/Quit", command=lambda windname=LogOut: self.newPage(windname))
-        self.settingmenu.add("command", label="About")
+        self.settingmenu.add("command", label="About", command=lambda windname=About, yourfile=yourfile: self.newPage(windname,yourfile))
         # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
         # self.sortbymenu.add("command", label="Subject")
         
@@ -371,7 +395,7 @@ class Home(Master):
         # search items
         self.search = Entry(window, width=70)
         self.search.grid(row=1, column=1, columnspan=4)
-        self.searchButton = Button(window, text="Search", command=lambda submitData="search", numElement=1, listn=[self.search], other=None: self.retrieve(submitData,numElement,listn,other))
+        self.searchButton = Button(window, text="Search", command=lambda submitData="search", numElement=1, listn=[self.search], other=self.yourfile: self.retrieve(submitData,numElement,listn,other))
         self.searchButton.grid(row=1, column=5)
         
         # list of inputted events
@@ -439,7 +463,7 @@ class Home(Master):
         
 # NewEntry -- creates new entry window to receive data
 class NewEntry(Master):
-    attributes = ["Subject:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
+    attributes = ["Subject:","Category:","Names:","Date:","Time Start:","Or Length:","Other Info:"]
     months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     days = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
     years = [2018,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030]
@@ -447,10 +471,11 @@ class NewEntry(Master):
     # initialize NewEntry class
     # @param: window:Tk()
     # @return: none
-    def __init__(self,window):
+    def __init__(self,window,yourfile):
         Master.__init__(self)
         self.window = window
         window.title = "timeTracker - New Entry"
+        self.yourfile = yourfile
         self.nodatey = IntVar()
         self.nolengthy = IntVar()
         
@@ -460,7 +485,6 @@ class NewEntry(Master):
         self.viewmenu = Menu(self.menubar, tearoff=False)
         self.helpmenu = Menu(self.menubar, tearoff=False)
         
-        
         # second tier menus
         self.settingmenu = Menu(self.helpmenu, tearoff=False)
         self.sortbymenu = Menu(self.viewmenu, tearoff=False)
@@ -468,10 +492,14 @@ class NewEntry(Master):
         self.menubar.add_cascade(label="File", menu=self.filemenu)
         self.menubar.add_cascade(label="View", menu=self.viewmenu)
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
-        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
-        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.filemenu.add("command", label="Home", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry, yourfile=yourfile: self.newPage(windname,yourfile))
         # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
+        self.settingmenu.add("command", label="Export Data", command=lambda windname=ExportXls, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.settingmenu.add("command", label="Clear All Data", command=lambda windname=ClearData, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.settingmenu.add("command", label="Log Out/Quit", command=lambda windname=LogOut: self.newPage(windname))
+        self.settingmenu.add("command", label="About", command=lambda windname=About, yourfile=yourfile: self.newPage(windname,yourfile))
         # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
         # self.sortbymenu.add("command", label="Subject")
         
@@ -482,50 +510,52 @@ class NewEntry(Master):
             self.newLbls = Label(window, text=self.attributes[i])
             self.newLbls.grid(row=i, column=1)
         self.endTime = Label(window, text="Time End:")
-        self.endTime.grid(row=3, column=3)
+        self.endTime.grid(row=4, column=3)
             
         # generating and grid-ing the input stuff
         self.subject = Entry(window, width=70)
+        self.category = Entry(window, width=70)
         self.names = Entry(window, width=70)
         self.names.insert(0, 'Please enter names of people associated with this event separated by commas.')
         self.names.bind("<FocusIn>", lambda args: self.names.delete('0', 'end'))
         self.subject.grid(row=0, column=2, columnspan=3)
-        self.names.grid(row=1, column=2, columnspan=3)
+        self.category.grid(row=1, column=2, columnspan=3)
+        self.names.grid(row=2, column=2, columnspan=3)
         
         self.month = Spinbox(window,values=self.months,width=15)
         self.day = Spinbox(window,values=self.days,width=15)
         self.year = Spinbox(window,values=self.years,width=15)
-        self.month.grid(row=2, column=2)
-        self.day.grid(row=2, column=3)
-        self.year.grid(row=2, column=4)
+        self.month.grid(row=3, column=2)
+        self.day.grid(row=3, column=3)
+        self.year.grid(row=3, column=4)
         self.nodate = Checkbutton(self.window, text="No Date", variable=self.nodatey, command=lambda button="nodate", widgets=[self.month,self.day,self.year]: self.disableWidget(button,widgets))
-        self.nodate.grid(row=2, column=5)
+        self.nodate.grid(row=3, column=5)
         
         # add keybind to which type of length using (ie. which one has text and which doesn't)
         
         self.tstart = Entry(window, width=28)
         self.tend = Entry(window, width=28)
-        self.tstart.grid(row=3, column=2)
-        self.tend.grid(row=3, column=4)
+        self.tstart.grid(row=4, column=2)
+        self.tend.grid(row=4, column=4)
         
         self.length = Entry(window, width=70)
         self.length.insert(0, 'hh:mm')
-        self.length.grid(row=4, column=2, columnspan=3)
+        self.length.grid(row=5, column=2, columnspan=3)
         
         self.tstart.bind("<FocusIn>", lambda args: self.disableWidget("length",[self.tstart,self.tend,self.length]))
         self.tend.bind("<FocusIn>", lambda args: self.disableWidget("length",[self.tstart,self.tend,self.length]))
         self.length.bind("<FocusIn>", lambda args: self.disableWidget("time",[self.tstart,self.tend,self.length]))
         
         self.nolength = Checkbutton(self.window, text="No Length", variable=self.nolengthy, command=lambda button="nolength", widgets=[self.tstart,self.tend,self.length]: self.disableWidget(button,widgets))
-        self.nolength.grid(row=4, column=5)
+        self.nolength.grid(row=5, column=5)
         
         self.info = Entry(window, width=70)
-        self.info.grid(row=5, column=2, columnspan=3)
+        self.info.grid(row=6, column=2, columnspan=3)
         
-        self.listn = [self.subject,self.names,self.month,self.day,self.year,self.tstart,self.tend,self.length,self.info]
+        self.listn = [self.subject,self.category,self.names,self.month,self.day,self.year,self.tstart,self.tend,self.length,self.info]
 
         self.submit = Button(window, text="Submit", command= lambda submitData="newentry", numElement=9, listn=self.listn, other=self.months: self.retrieve(submitData, numElement, listn, other))
-        self.submit.grid(row=6, column=1, columnspan=4)
+        self.submit.grid(row=7, column=1, columnspan=4)
         
     # disables widgets when things are clicked
     # @param: button:str, widgets:object[]
@@ -591,13 +621,10 @@ class Search(Master):
         elif sort == 5:
             for i in range(len(self.foundInfo)):
                 self.displayList.append(self.listEntry[i])
-        
-        print self.displayList
-        
+                
         for i in range(len(lists)):
             lists[i].delete(0,END)
             for k in range(len(self.displayList)):
-                print i,k
                 lists[i].insert(END,self.displayList[k][i])
     
     # initialize Search window
@@ -616,7 +643,6 @@ class Search(Master):
         self.viewmenu = Menu(self.menubar, tearoff=False)
         self.helpmenu = Menu(self.menubar, tearoff=False)
         
-        
         # second tier menus
         self.settingmenu = Menu(self.helpmenu, tearoff=False)
         self.sortbymenu = Menu(self.viewmenu, tearoff=False)
@@ -624,14 +650,19 @@ class Search(Master):
         self.menubar.add_cascade(label="File", menu=self.filemenu)
         self.menubar.add_cascade(label="View", menu=self.viewmenu)
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
-        self.filemenu.add("command", label="Home", command=lambda windname=Home: self.newPage(windname))
-        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry: self.newPage(windname))
+        self.filemenu.add("command", label="Home", command=lambda windname=Home, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.filemenu.add("command", label="New Entry", command=lambda windname=NewEntry, yourfile=yourfile: self.newPage(windname,yourfile))
         # self.filemenu.add("command", label="Calculate Hours", command=lambda windname=CalculateHours, events=[['','','','','','']]: self.newPage(windname,events))
         self.helpmenu.add_cascade(label="Settings", menu=self.settingmenu)
-        self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
-        self.sortbymenu.add("command", label="Subject")
+        self.settingmenu.add("command", label="Export Data", command=lambda windname=ExportXls, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.settingmenu.add("command", label="Clear All Data", command=lambda windname=ClearData, yourfile=yourfile: self.newPage(windname,yourfile))
+        self.settingmenu.add("command", label="Log Out/Quit", command=lambda windname=LogOut: self.newPage(windname))
+        self.settingmenu.add("command", label="About", command=lambda windname=About, yourfile=yourfile: self.newPage(windname,yourfile))
+        # self.viewmenu.add_cascade(label="Sort by", menu=self.sortbymenu)
+        # self.sortbymenu.add("command", label="Subject")
         
         window.config(menu = self.menubar)
+        
         
         self.foundTitle = []
         self.foundCategory = []
@@ -657,12 +688,7 @@ class Search(Master):
                 self.foundLength.append([self.listEntry[i][4],i])
             if self.listEntry[i][5].find(keyword) >= 0:
                 self.foundInfo.append([self.listEntry[i][5],i])
-                
-        print self.foundTitle, self.foundCategory, self.foundName, self.foundDate, self.foundLength, self.foundInfo
         
-            
-        
-        print "hi",self.displayList
         # self.listEvents.sort()
         
         # create vertical and 3 horizontal scrollbars
